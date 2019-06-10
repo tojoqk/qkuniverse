@@ -1,9 +1,9 @@
 #lang typed/racket/base
 (require typed/2htdp/universe)
 (require typed/2htdp/image)
-(require "world.rkt")
+(require "qkuniverse.rkt")
 
-(provide (all-from-out "world.rkt")
+(provide (all-from-out "qkuniverse.rkt")
          current-screen-width
          current-screen-height
          current-text-size
@@ -52,6 +52,6 @@
 (: start (-> world world))
 (define (start w)
   (big-bang w : world
-    (on-tick (λ ([w : world])
-               (update-world w)))
-    (to-draw draw-world)))
+            (on-tick (λ ([w : world])
+                       (update-world w)))
+            (to-draw draw-world)))
