@@ -50,6 +50,18 @@
 (define (particle-z p)
   (flvector-ref (particle-position p) 2))
 
+(: particle-vx (-> particle Flonum))
+(define (particle-vx p)
+  (flvector-ref (particle-velocity p) 0))
+
+(: particle-vy (-> particle Flonum))
+(define (particle-y p)
+  (flvector-ref (particle-velocity p) 1))
+
+(: particle-vz (-> particle Flonum))
+(define (particle-vz p)
+  (flvector-ref (particle-velocity p) 2))
+
 (: make-world (-> (Listof particle) world))
 (define (make-world ps)
   (%make-world
