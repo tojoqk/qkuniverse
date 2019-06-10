@@ -1,29 +1,29 @@
 #lang typed/racket
 (require math/flonum)
 
-(provide (except-out (struct-out object)
-                     object-position
-                     %make-object
-                     object-velocity)
-         make-object object-x object-y
+(provide (except-out (struct-out particle)
+                     particle-position
+                     %make-particle
+                     particle-velocity)
+         make-particle particle-x particle-y
          (except-out (struct-out world)
                      %make-world)
-         world-object
+         world-particle
          make-world
          update-world
          current-gravitational-constant
          current-dt)
 
-(struct world ([objects : (Immutable-HashTable Symbol object)])
+(struct world ([particles : (Immutable-HashTable Symbol particle)])
   #:constructor-name %make-world)
 
-(struct object ([id : Symbol]
+(struct particle ([id : Symbol]
                 [position : FlVector]
                 [velocity : FlVector]
                 [m : Flonum])
-    #:constructor-name %make-object)
+    #:constructor-name %make-particle)
 
-(: make-object (-> Symbol
+(: make-particle (-> Symbol
                    #:x Flonum
                    #:y Flonum
                    [#:z Flonum]
@@ -31,27 +31,27 @@
                    #:vy Flonum
                    [#:vz Flonum]
                    #:m Flonum
-                   object))
-(define (make-object id #:x x #:y y #:z [z 0.0] #:vx vx #:vy vy #:vz [vz 0.0] #:m m)
-  (%make-object id
+                   particle))
+(define (make-particle id #:x x #:y y #:z [z 0.0] #:vx vx #:vy vy #:vz [vz 0.0] #:m m)
+  (%make-particle id
                 (flvector x y z)
                 (flvector vx vy vz)
                 m))
 
-(: object-x (-> object Flonum))
-(define (object-x obj)
-  (flvector-ref (object-position obj) 0))
+(: particle-x (-> particle Flonum))
+(define (particle-x p)
+  (flvector-ref (particle-position p) 0))
 
-(: object-y (-> object Flonum))
-(define (object-y obj)
-  (flvector-ref (object-position obj) 1))
+(: particle-y (-> particle Flonum))
+(define (particle-y p)
+  (flvector-ref (particle-position p) 1))
 
-(: make-world (-> (Listof object) world))
-(define (make-world objs)
+(: make-world (-> (Listof particle) world))
+(define (make-world ps)
   (%make-world
-   (for/hash : (Immutable-HashTable Symbol object)
-       ([obj : object objs])
-     (values (object-id obj) obj))))
+   (for/hash : (Immutable-HashTable Symbol particle)
+       ([p : particle ps])
+     (values (particle-id p) p))))
 
 (: update-world (-> world world))
 (define (update-world w)
@@ -66,28 +66,28 @@
 
 (: update-velocity (-> world Flonum world))
 (define (update-velocity w dt)
-  (define objs (world-objects w))
+  (define ps (world-particles w))
   (struct-copy
    world w
-   [objects
+   [particles
     (cond
-      [(= (hash-count objs) 1) objs]
+      [(= (hash-count ps) 1) ps]
       [else
-       (for*/hash : (Immutable-HashTable Symbol object)
-           ([(id1 obj1) objs]
-            [(id2 obj2) objs]
+       (for*/hash : (Immutable-HashTable Symbol particle)
+           ([(id1 p1) ps]
+            [(id2 p2) ps]
             #:unless (eq? id1 id2))
-         (let* ([pos1 (object-position obj1)]
-                [pos2 (object-position obj2)]
+         (let* ([pos1 (particle-position p1)]
+                [pos2 (particle-position p2)]
                 [r (distance pos1 pos2)]
-                [g (fl/ (fl* (current-gravitational-constant) (object-m obj2))
+                [g (fl/ (fl* (current-gravitational-constant) (particle-m p2))
                         (fl* r r))]
                 [u (flvector-scale (flvector- pos2 pos1)
                                    (fl/ 1.0 r))])
            (values id1
                    (struct-copy
-                    object obj1
-                    [velocity (flvector+ (object-velocity obj1)
+                    particle p1
+                    [velocity (flvector+ (particle-velocity p1)
                                          (flvector-scale u (fl* dt g)))]))))])]))
 
 (: distance (-> FlVector FlVector Flonum))
@@ -101,17 +101,17 @@
 (define (update-position w dt)
   (struct-copy
    world w
-   [objects
-    (for/hash : (Immutable-HashTable Symbol object)
-        ([(id obj) (world-objects w)])
+   [particles
+    (for/hash : (Immutable-HashTable Symbol particle)
+        ([(id p) (world-particles w)])
       (values id
               (struct-copy
-               object obj
+               particle p
                [position
-                (flvector+ (object-position obj)
-                           (flvector-scale (object-velocity obj)
+                (flvector+ (particle-position p)
+                           (flvector-scale (particle-velocity p)
                                            dt))])))]))
 
-(: world-object (-> world Symbol object))
-(define (world-object w id)
-  (hash-ref (world-objects w) id))
+(: world-particle (-> world Symbol particle))
+(define (world-particle w id)
+  (hash-ref (world-particles w) id))
