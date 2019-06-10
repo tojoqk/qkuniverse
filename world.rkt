@@ -46,6 +46,10 @@
 (define (particle-y p)
   (flvector-ref (particle-position p) 1))
 
+(: particle-z (-> particle Flonum))
+(define (particle-z p)
+  (flvector-ref (particle-position p) 2))
+
 (: make-world (-> (Listof particle) world))
 (define (make-world ps)
   (%make-world
