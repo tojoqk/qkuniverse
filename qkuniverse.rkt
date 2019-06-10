@@ -13,6 +13,7 @@
 
 (: current-screen-width (Parameterof Nonnegative-Real))
 (define current-screen-width (make-parameter 640))
+
 (: current-screen-height (Parameterof Nonnegative-Real))
 (define current-screen-height (make-parameter 480))
 
